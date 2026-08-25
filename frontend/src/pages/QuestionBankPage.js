@@ -20,7 +20,7 @@ export default function QuestionBankPage({ meta }) {
   };
 
   useEffect(() => {
-    search(); // eslint-disable-next-line react-hooks/exhaustive-deps
+    search();
   }, []);
 
   const chapters = meta?.chaptersBySubject?.[filters.subject] || [];
@@ -88,7 +88,7 @@ export default function QuestionBankPage({ meta }) {
             <div key={q._id} className="rounded-xl border border-slate-200 bg-white p-4">
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-400">
-                  {q.subject} \u2022 {q.chapter} \u2022 {q.difficulty}
+                  {q.subject} • {q.chapter} • {q.difficulty}
                 </span>
                 <span
                   className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
