@@ -1,55 +1,51 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { authApi } from "../api";
 
 const AuthContext = createContext(null);
 
+function getGuestId() {
+  let guestId = localStorage.getItem("examforge_guest_id");
+  if (!guestId) {
+    guestId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+    localStorage.setItem("examforge_guest_id", guestId);
+  }
+  return guestId;
+}
+
+function makeGuestUser() {
+  const guestId = getGuestId();
+  return {
+    id: guestId,
+    name: "Guest Student",
+    email: "Guest mode",
+    board: "CBSE",
+    class: "9",
+    roll: "",
+    streakDays: 0,
+  };
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const raw = localStorage.getItem("examforge_user");
-    return raw ? JSON.parse(raw) : null;
-  });
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(makeGuestUser);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("examforge_token");
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    authApi
-      .me()
-      .then(({ user: freshUser }) => {
-        setUser(freshUser);
-        localStorage.setItem("examforge_user", JSON.stringify(freshUser));
-      })
-      .catch(() => {
-        localStorage.removeItem("examforge_token");
-        localStorage.removeItem("examforge_user");
-        setUser(null);
-      })
-      .finally(() => setLoading(false));
+    localStorage.removeItem("examforge_token");
+    localStorage.removeItem("examforge_user");
   }, []);
 
-  const login = useCallback(async (email, password) => {
-    const { token, user: u } = await authApi.login({ email, password });
-    localStorage.setItem("examforge_token", token);
-    localStorage.setItem("examforge_user", JSON.stringify(u));
-    setUser(u);
-    return u;
+  const login = useCallback(async () => {
+    throw new Error("Login is disabled in guest mode.");
   }, []);
 
-  const signup = useCallback(async (payload) => {
-    const { token, user: u } = await authApi.signup(payload);
-    localStorage.setItem("examforge_token", token);
-    localStorage.setItem("examforge_user", JSON.stringify(u));
-    setUser(u);
-    return u;
+  const signup = useCallback(async () => {
+    throw new Error("Signup is disabled in guest mode.");
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem("examforge_token");
     localStorage.removeItem("examforge_user");
-    setUser(null);
+    localStorage.removeItem("examforge_guest_id");
+    setUser(makeGuestUser());
   }, []);
 
   return (
